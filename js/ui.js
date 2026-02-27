@@ -103,7 +103,7 @@ class UI {
 
         ctx.font = '16px "Noto Sans TC", sans-serif';
         ctx.fillStyle = '#AADDAA';
-        ctx.fillText('離線版 ── 單人對戰電腦', W / 2, py + 95);
+        ctx.fillText('單人對戰電腦', W / 2, py + 95);
 
         // Decorative line
         ctx.strokeStyle = '#c4973a';
@@ -973,3 +973,4 @@ class UI {
         ctx.restore();
     }
 }
+

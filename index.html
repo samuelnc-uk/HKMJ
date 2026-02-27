@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>香港麻雀 — 離線版</title>
+    <meta name="description" content="香港麻雀離線版遊戲，支援三種難度、十種牌面顏色、起糊番數設定。逼真象牙麻雀牌配綠色麻雀枱面。">
+
+    <!-- iOS / PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="香港麻雀">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a1f10">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="img/icons/icon-192.png">
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Loading screen -->
+    <div id="loading">
+        <h1>香港麻雀</h1>
+        <p>載入中…</p>
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Scripts (order matters) -->
+    <script src="js/constants.js"></script>
+    <script src="js/tile.js"></script>
+    <script src="js/wall.js"></script>
+    <script src="js/hand.js"></script>
+    <script src="js/scoring.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/characters.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Hide loading screen once everything is ready
+        window.addEventListener('load', function () {
+            document.getElementById('loading').classList.add('hidden');
+            setTimeout(function () {
+                document.getElementById('loading').style.display = 'none';
+            }, 600);
+        });
+    </script>
+</body>
+
+</html>

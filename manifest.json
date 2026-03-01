@@ -1,7 +1,7 @@
 {
-  "name": "香港麻雀 — 離線版",
+  "name": "香港麻雀",
   "short_name": "香港麻雀",
-  "description": "高品質香港麻雀離線版，支援三種難度與多種主題。",
+  "description": "高品質香港麻雀，支援三種難度與多種主題。",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a1f10",
@@ -19,3 +19,4 @@
     }
   ]
 }
+

@@ -74,21 +74,16 @@ class UI {
             this.renderer.drawTable();
         }
 
-        // Dark overlay (full screen)
+        // Dark overlay (lighter to show background)
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.fillRect(0, 0, W, H);
 
-        const dW = this.renderer.drawW;
-        const dH = this.renderer.drawH;
-        const offX = this.renderer.offX;
-        const offY = this.renderer.offY;
-
         // Title panel
         const isPortrait = this.renderer.isPortrait;
-        const panelW = isPortrait ? Math.min(dW * 0.95, 420) : 500;
-        const panelH = isPortrait ? Math.min(dH * 0.9, 650) : 520;
-        const px = offX + (dW - panelW) / 2;
-        const py = offY + (dH - panelH) / 2 - 20;
+        const panelW = isPortrait ? Math.min(W * 0.95, 420) : 500;
+        const panelH = isPortrait ? Math.min(H * 0.9, 650) : 520;
+        const px = (W - panelW) / 2;
+        const py = (H - panelH) / 2 - 20;
 
         ctx.save();
         // Panel background (semi-transparent)
@@ -109,11 +104,11 @@ class UI {
         ctx.textBaseline = 'middle';
         ctx.font = `bold ${isPortrait ? 36 : 42}px "Noto Sans TC", sans-serif`;
         ctx.fillStyle = '#FFD700';
-        ctx.fillText('香港麻雀', offX + dW / 2, py + 55);
+        ctx.fillText('香港麻雀', W / 2, py + 55);
 
         ctx.font = `${isPortrait ? 14 : 16}px "Noto Sans TC", sans-serif`;
         ctx.fillStyle = '#AADDAA';
-        ctx.fillText('單人對戰電腦', offX + dW / 2, py + (isPortrait ? 90 : 95));
+        ctx.fillText('單人對戰電腦', W / 2, py + (isPortrait ? 90 : 95));
 
         // Decorative line
         ctx.strokeStyle = '#c4973a';
@@ -327,7 +322,7 @@ class UI {
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('開始遊戲', offX + dW / 2, startY + startH / 2);
+        ctx.fillText('開始遊戲', W / 2, startY + startH / 2);
         ctx.restore();
 
         this.buttons.push({ x: startX, y: startY, w: startW, h: startH, action: 'start' });
@@ -465,7 +460,7 @@ class UI {
             ctx.fillStyle = '#CCDDCC';
             ctx.textAlign = 'center';
             // Repositioned to safe zone, slightly above buttons
-            ctx.fillText('按一下牌嚟打出', this.renderer.offX + this.renderer.drawW / 2, this.renderer.offY + this.renderer.drawH - this.renderer.TILE_H - 120 - (acts.length > 0 ? 50 : 0));
+            ctx.fillText('按一下牌嚟打出', W / 2, H - this.renderer.TILE_H - 120 - (acts.length > 0 ? 50 : 0));
             ctx.restore();
         }
 
@@ -484,31 +479,26 @@ class UI {
         const H = this.renderer.H;
         this.buttons = [];
 
-        const dW = this.renderer.drawW;
-        const dH = this.renderer.drawH;
-        const offX = this.renderer.offX;
-        const offY = this.renderer.offY;
-
         ctx.save();
         ctx.font = 'bold 24px "Noto Sans TC", sans-serif';
         ctx.fillStyle = '#FFD700';
         ctx.textAlign = 'center';
-        ctx.fillText('擲骰子決定莊家', offX + dW / 2, offY + dH / 2 - 100);
+        ctx.fillText('擲骰子決定莊家', W / 2, H / 2 - 100);
 
         ctx.font = '16px "Noto Sans TC", sans-serif';
         ctx.fillStyle = '#FFF';
-        ctx.fillText('東位玩家 (你) 擲骰', offX + dW / 2, offY + dH / 2 - 70);
+        ctx.fillText('東位玩家 (你) 擲骰', W / 2, H / 2 - 70);
 
         const btnW = 140;
         const btnH = 50;
         if (!game.diceRolled) {
-            const bx = offX + dW / 2 - btnW / 2;
-            const by = offY + dH / 2 + 210; // Shifted down to be below new dice position
+            const bx = W / 2 - btnW / 2;
+            const by = H / 2 + 210; // Shifted down to be below new dice position
             this._drawActionBtn(bx, by, btnW, btnH, '擲骰子', '#2d8b57');
             this.buttons.push({ x: bx, y: by, w: btnW, h: btnH, action: 'dice_roll' });
         } else {
-            const bx = offX + dW / 2 - btnW / 2;
-            const by = offY + dH / 2 + 230; // Shifted down
+            const bx = W / 2 - btnW / 2;
+            const by = H / 2 + 230; // Shifted down
             this._drawActionBtn(bx, by, btnW, btnH, '確定', '#c4973a');
             this.buttons.push({ x: bx, y: by, w: btnW, h: btnH, action: 'dice_confirm' });
         }
@@ -535,8 +525,8 @@ class UI {
         const allColors = { ...colors, pass: '#666666' };
 
         const totalW = allActs.length * (btnW + btnGap) - btnGap;
-        let startX = offX + W / 2 - totalW / 2;
-        const by = isPortrait ? offY + H - this.renderer.TILE_H - 160 : offY + H - this.renderer.TILE_H - 115;
+        let startX = W / 2 - totalW / 2;
+        const by = isPortrait ? H - this.renderer.TILE_H - 160 : H - this.renderer.TILE_H - 115;
 
         // Show what tile is being claimed
         if (game.lastDiscard) {
@@ -544,7 +534,7 @@ class UI {
             ctx.font = `bold ${isPortrait ? 16 : 14}px "Noto Sans TC", sans-serif`;
             ctx.fillStyle = '#FFD700';
             ctx.textAlign = 'center';
-            ctx.fillText(`${WIND_NAMES[game.seatWinds[game.lastDiscardPlayer]]}家打出 ${game.lastDiscard.displayName}`, offX + W / 2, by - 25);
+            ctx.fillText(`${WIND_NAMES[game.seatWinds[game.lastDiscardPlayer]]}家打出 ${game.lastDiscard.displayName}`, W / 2, by - 25);
             ctx.restore();
         }
 
@@ -602,18 +592,12 @@ class UI {
         const H = this.renderer.H;
         this.buttons = [];
 
-        const dW = this.renderer.drawW;
-        const dH = this.renderer.drawH;
-        const offX = this.renderer.offX;
-        const offY = this.renderer.offY;
-        this.buttons = [];
-
         const playerNames = ['你', '下家', '對家', '上家'];
 
         if (this.showingScorePanel) {
             // Overlay
             ctx.fillStyle = 'rgba(0,0,0,0.65)';
-            ctx.fillRect(0, 0, this.renderer.W, this.renderer.H);
+            ctx.fillRect(0, 0, W, H);
 
             // Calculate panel height based on content
             let contentH = 110; // base padding
@@ -626,9 +610,9 @@ class UI {
             contentH += 135; // score table + button
 
             const panelW = 480;
-            const panelH = Math.min(contentH, dH - 40);
-            const px = offX + (dW - panelW) / 2;
-            const py = offY + (dH - panelH) / 2;
+            const panelH = Math.min(contentH, H - 40);
+            const px = (W - panelW) / 2;
+            const py = (H - panelH) / 2;
 
             // Panel
             ctx.save();

@@ -104,23 +104,10 @@ class Renderer {
         this.canvas.style.height = this.H + 'px';
         this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        // Calculate Safe Zone (reduce 20% as per user request)
-        if (this.isPortrait) {
-            this.offX = 0;
-            this.offY = this.H * 0.1; // 10% padding top
-            this.drawW = this.W;
-            this.drawH = this.H * 0.8; // Total 80% height (10% top + 10% bottom padding)
-        } else {
-            this.offX = this.W * 0.1; // 10% padding left
-            this.offY = 0;
-            this.drawW = this.W * 0.8; // Total 80% width (10% left + 10% right padding)
-            this.drawH = this.H;
-        }
-
-        // Use drawW/drawH for scaling instead of full W/H
+        // Responsive tile size - adjusted for portrait
         const baseWidth = this.isPortrait ? 800 : 1400;
         const baseHeight = this.isPortrait ? 1200 : 900;
-        const scaleFactor = Math.min(this.drawW / baseWidth, this.drawH / baseHeight, 1.2);
+        const scaleFactor = Math.min(this.W / baseWidth, this.H / baseHeight, 1.2);
 
         this.TILE_W = Math.floor(44 * scaleFactor);
         this.TILE_H = Math.floor(60 * scaleFactor);
@@ -961,12 +948,12 @@ class Renderer {
         const avatarSize = Math.floor(Math.min(120, this.W * 0.08, this.H * 0.12));
         const playerNames = ['你', '下家', '對家', '上家'];
 
-        // Avatars moved to extreme corners of the draw area (Safe Zone aware)
+        // Avatars moved to extreme corners
         const positions = [
-            { x: this.offX + 70, y: this.offY + this.drawH - 80 },            // Player 0 (bottom-left)
-            { x: this.offX + this.drawW - 70, y: this.offY + this.drawH - 160 },   // Player 1 (right)
-            { x: this.offX + this.drawW - 70, y: this.offY + 80 },             // Player 2 (top-right)
-            { x: this.offX + 70, y: this.offY + 80 }                       // Player 3 (left)
+            { x: 70, y: this.H - 80 },            // Player 0 (bottom-left)
+            { x: this.W - 70, y: this.H - 160 },   // Player 1 (right)
+            { x: this.W - 70, y: 80 },             // Player 2 (top-right)
+            { x: 70, y: 80 }                       // Player 3 (left)
         ];
 
         for (let i = 0; i < 4; i++) {
@@ -1012,8 +999,8 @@ class Renderer {
 
     _drawCentreInfo(game) {
         const ctx = this.ctx;
-        const cx = this.offX + this.drawW / 2;
-        const cy = this.offY + this.drawH / 2;
+        const cx = this.W / 2;
+        const cy = this.H / 2;
 
         // Central area background
         ctx.save();
@@ -1073,8 +1060,8 @@ class Renderer {
         if (!hand) return;
         const tiles = hand.concealed;
         const totalW = tiles.length * (this.TILE_W + this.TILE_GAP);
-        let startX = this.offX + (this.drawW - totalW) / 2;
-        const y = this.offY + this.drawH - this.TILE_H - 15;
+        let startX = (this.W - totalW) / 2;
+        const y = this.H - this.TILE_H - 15;
         this._playerTilePositions = [];
         for (let i = 0; i < tiles.length; i++) {
             const x = startX + i * (this.TILE_W + this.TILE_GAP);
@@ -1092,8 +1079,8 @@ class Renderer {
         if (game.hands[2]) {
             const count = game.hands[2].concealed.length;
             const totalW = count * (this.TILE_W * 0.7 + 2);
-            const startX = this.offX + (this.drawW - totalW) / 2;
-            const ty = this.offY + 25;
+            const startX = (this.W - totalW) / 2;
+            const ty = 25;
             for (let i = 0; i < count; i++) {
                 const tx = startX + i * (this.TILE_W * 0.7 + 2);
                 if (isReveal) this.drawTile(tx, ty, game.hands[2].concealed[i], false, true);
@@ -1102,14 +1089,14 @@ class Renderer {
             this.ctx.fillStyle = '#AADDAA';
             this.ctx.font = '13px "Noto Sans TC", sans-serif';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(`對家 (${WIND_NAMES[game.seatWinds[2]]})`, this.offX + this.drawW / 2, this.offY + 18);
+            this.ctx.fillText(`對家 (${WIND_NAMES[game.seatWinds[2]]})`, this.W / 2, 18);
         }
         // Right player (index 1)
         if (game.hands[1]) {
             const count = game.hands[1].concealed.length;
             const totalH = count * (this.TILE_W * 0.7 + 2);
-            const startY = this.offY + (this.drawH - totalH) / 2;
-            const tx = this.offX + this.drawW - this.TILE_H * 0.7 - 25;
+            const startY = (this.H - totalH) / 2;
+            const tx = this.W - this.TILE_H * 0.7 - 25;
             for (let i = 0; i < count; i++) {
                 const ty = startY + i * (this.TILE_W * 0.7 + 2);
                 if (isReveal) {
@@ -1121,7 +1108,7 @@ class Renderer {
                 } else this.drawTileBack(tx, ty, true, true);
             }
             this.ctx.save();
-            this.ctx.translate(this.offX + this.drawW - 14, this.offY + this.drawH / 2);
+            this.ctx.translate(this.W - 14, this.H / 2);
             this.ctx.rotate(-Math.PI / 2);
             this.ctx.fillStyle = '#AADDAA';
             this.ctx.font = '13px "Noto Sans TC", sans-serif';
@@ -1133,8 +1120,8 @@ class Renderer {
         if (game.hands[3]) {
             const count = game.hands[3].concealed.length;
             const totalH = count * (this.TILE_W * 0.7 + 2);
-            const startY = this.offY + (this.drawH - totalH) / 2;
-            const tx = this.offX + 25;
+            const startY = (this.H - totalH) / 2;
+            const tx = 25;
             for (let i = 0; i < count; i++) {
                 const ty = startY + i * (this.TILE_W * 0.7 + 2);
                 if (isReveal) {
@@ -1146,7 +1133,7 @@ class Renderer {
                 } else this.drawTileBack(tx, ty, true, true);
             }
             this.ctx.save();
-            this.ctx.translate(this.offX + 14, this.offY + this.drawH / 2);
+            this.ctx.translate(14, this.H / 2);
             this.ctx.rotate(Math.PI / 2);
             this.ctx.fillStyle = '#AADDAA';
             this.ctx.font = '13px "Noto Sans TC", sans-serif';
@@ -1162,8 +1149,8 @@ class Renderer {
         if (hand) {
             const tiles = hand.concealed;
             const totalW = tiles.length * (this.TILE_W + this.TILE_GAP);
-            let startX = this.offX + (this.drawW - totalW) / 2;
-            const y = this.offY + this.drawH - this.TILE_H - 60;
+            let startX = (this.W - totalW) / 2;
+            const y = this.H - this.TILE_H - 60;
 
             this._playerTilePositions = [];
             for (let i = 0; i < tiles.length; i++) {
@@ -1179,14 +1166,14 @@ class Renderer {
             this.ctx.fillStyle = '#FFD700';
             this.ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(`你 (${WIND_NAMES[game.seatWinds[0]]})`, this.offX + this.drawW / 2, this.offY + this.drawH - 25);
+            this.ctx.fillText(`你 (${WIND_NAMES[game.seatWinds[0]]})`, this.W / 2, this.H - 25);
         }
 
         // Group opponents at the top in portrait
         const opponents = [
-            { idx: 3, label: '上家', x: this.offX + 20, align: 'left' },
-            { idx: 2, label: '對家', x: this.offX + this.drawW / 2, align: 'center' },
-            { idx: 1, label: '下家', x: this.offX + this.drawW - 20, align: 'right' }
+            { idx: 3, label: '上家', x: 20, align: 'left' },
+            { idx: 2, label: '對家', x: this.W / 2, align: 'center' },
+            { idx: 1, label: '下家', x: this.W - 20, align: 'right' }
         ];
 
         opponents.forEach(p => {
@@ -1221,8 +1208,8 @@ class Renderer {
     _drawDiscardPiles(game) {
         if (!game.hands || !game.hands[0]) return;
         const ctx = this.ctx;
-        const cx = this.offX + this.drawW / 2;
-        const cy = this.offY + this.drawH / 2;
+        const cx = this.W / 2;
+        const cy = this.H / 2;
         const smallW = this.TILE_W * 0.55;
         const smallH = this.TILE_H * 0.55;
         const gap = 2;
@@ -1283,17 +1270,17 @@ class Renderer {
             if (this.isPortrait) {
                 // Portrait positions
                 if (p === 0) { // Bottom (You) - Above hand
-                    startX = this.offX + 20;
-                    startY = this.offY + this.drawH - this.TILE_H - 140;
+                    startX = 20;
+                    startY = this.H - this.TILE_H - 140;
                 } else if (p === 2) { // Top (Opposite) - Below hand
-                    startX = this.offX + this.drawW / 2 - 40;
-                    startY = this.offY + 60;
+                    startX = this.W / 2 - 40;
+                    startY = 60;
                 } else if (p === 3) { // Left - Below top label
-                    startX = this.offX + 20;
-                    startY = this.offY + 60;
+                    startX = 20;
+                    startY = 60;
                 } else { // Right - Below top label
-                    startX = this.offX + this.drawW - 120;
-                    startY = this.offY + 60;
+                    startX = this.W - 120;
+                    startY = 60;
                 }
             } else {
                 if (p === 0 || p === 2) { // Horizontal row (Bottom / Top)
@@ -1305,18 +1292,18 @@ class Renderer {
                     const meldW = totalMeldTiles * (smallW + 1) + totalMeldGaps * 6;
                     const gap = (flowers.length > 0 && melds.length > 0) ? 6 : 0;
 
-                    startX = this.offX + (this.drawW - (flowerW + gap + meldW)) / 2;
+                    startX = (this.W - (flowerW + gap + meldW)) / 2;
                     startY = (p === 0)
-                        ? this.offY + this.drawH - this.TILE_H - smallH - 35  // Bottom
-                        : this.offY + 25 + this.TILE_H * 0.7 + 15;        // Top
+                        ? this.H - this.TILE_H - smallH - 35  // Bottom
+                        : 25 + this.TILE_H * 0.7 + 15;        // Top
                 } else { // Vertical stack (Right / Left)
                     const totalItems = flowerRowsCount + melds.length;
                     const totalH = totalItems * (smallH + 4) - 4;
 
                     startX = (p === 1)
-                        ? this.offX + this.drawW - this.TILE_H * 0.7 - smallW * 4 - 50 // Right
-                        : this.offX + this.TILE_H * 0.7 + 50;                      // Left
-                    startY = this.offY + (this.drawH - totalH) / 2;
+                        ? this.W - this.TILE_H * 0.7 - smallW * 4 - 50 // Right
+                        : this.TILE_H * 0.7 + 50;                      // Left
+                    startY = (this.H - totalH) / 2;
                 }
             }
 

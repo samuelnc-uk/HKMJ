@@ -3,7 +3,7 @@
   "short_name": "香港麻雀",
   "description": "高品質香港麻雀，支援三種難度與多種主題。",
   "start_url": "./index.html",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#0a1f10",
   "theme_color": "#0a1f10",
   "icons": [
@@ -19,4 +19,5 @@
     }
   ]
 }
+
 

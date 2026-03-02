@@ -56,6 +56,32 @@ class AI {
             // Lower tileValue means less useful for us, so higher -tileValue means more discardable
             let score = -this._tileValue(t, hand);
 
+            // 4. Locked Suit Strategy (3-Fan games)
+            // If we have exposed a number suit meld, aggressively dump other number suits
+            if (gameState && gameState.minFan >= 3 && t.isNumberSuit) {
+                const exposedSuits = hand.melds
+                    .map(m => m.tiles[0].suit)
+                    .filter(s => s === SUITS.WAN || s === SUITS.TUNG || s === SUITS.SOK);
+
+                if (exposedSuits.length > 0) {
+                    const lockedSuit = exposedSuits[0];
+                    if (t.suit !== lockedSuit) {
+                        score += 30; // Very high priority to discard other suits
+                    } else {
+                        score -= 20; // PROTECT: High priority to KEEP tiles of the locked suit (even isolated ones)
+                    }
+                } else {
+                    // Even if not exposed, if we are clearly going for one suit, dump others
+                    const dist = this._getSuitDistribution(hand);
+                    const totalNumberTiles = dist[SUITS.WAN] + dist[SUITS.TUNG] + dist[SUITS.SOK];
+                    if (dist[t.suit] < totalNumberTiles * 0.3) {
+                        score += 5; // Preference to clear minority suits
+                    } else if (dist[t.suit] > totalNumberTiles * 0.6) {
+                        score -= 5; // Slight bias to keep majority suit
+                    }
+                }
+            }
+
             // 1. Defensive: Prefer tiles that have ALREADY been discarded (Safe tiles / Gen-butsu)
             if (gameState && gameState.allDiscards) {
                 const count = gameState.allDiscards.filter(d => d.key === t.key).length;
@@ -155,16 +181,12 @@ class AI {
         const isDangerousSuit = dangerous.suits.has(discardTile.suit);
 
         if (canChow && hand.canChow(discardTile).length > 0) {
-            // Strict 3-Fan Check: Don't chow if it pollutes a numerical suit we've already Punged
+            // Strict 3-Fan Check: Majority requirement for claims
             if (context.minFan >= 3 && discardTile.isNumberSuit) {
-                const hadNumericalPung = hand.melds.some(m =>
-                    (m.type === MELD_TYPE.PUNG || m.type.startsWith('kong')) &&
-                    m.tiles[0].isNumberSuit
-                );
-                if (hadNumericalPung) {
-                    const primarySuit = hand.melds.find(m => m.tiles[0].isNumberSuit).tiles[0].suit;
-                    if (discardTile.suit !== primarySuit) return null;
-                }
+                const dist = this._getSuitDistribution(hand);
+                const totalNumberTiles = dist[SUITS.WAN] + dist[SUITS.TUNG] + dist[SUITS.SOK];
+                // Must hold at least ~50% of the suit in hand+melds relative to other suits to claim
+                if (dist[discardTile.suit] < totalNumberTiles * 0.5) return null;
             }
 
             if (isDangerousSuit) return 'chow'; // Prevent dangerous player from getting it or skip her turn
@@ -199,16 +221,11 @@ class AI {
         }
 
         if (canChow && hand.canChow(discardTile).length > 0) {
-            // Strict 3-Fan Check: Don't chow if it pollutes a numerical suit we've already Punged
+            // Strict 3-Fan Check: Majority requirement for claims
             if (context.minFan >= 3 && discardTile.isNumberSuit) {
-                const hadNumericalPung = hand.melds.some(m =>
-                    (m.type === MELD_TYPE.PUNG || m.type.startsWith('kong')) &&
-                    m.tiles[0].isNumberSuit
-                );
-                if (hadNumericalPung) {
-                    const primarySuit = hand.melds.find(m => m.tiles[0].isNumberSuit).tiles[0].suit;
-                    if (discardTile.suit !== primarySuit) return null;
-                }
+                const dist = this._getSuitDistribution(hand);
+                const totalNumberTiles = dist[SUITS.WAN] + dist[SUITS.TUNG] + dist[SUITS.SOK];
+                if (dist[discardTile.suit] < totalNumberTiles * 0.5) return null;
             }
 
             if (isDangerousSuit) return 'chow'; // Intercept!
@@ -229,11 +246,11 @@ class AI {
         if (meldSuits.size > 0) {
             const lockedSuit = Array.from(meldSuits)[0];
             if (discardTile.suit !== lockedSuit) {
-                // If minFan >= 3, we MUST be strict about not polluting suits via Chow
-                // Pung is still okay if it's towards All Pungs, but Chow is restricted
+                // If minFan >= 3, we are ABSOLUTELY strict. No Chow, no Pung of other number suits.
+                if (context.minFan >= 3) return { protect: true, suit: lockedSuit };
+
                 const potential = this._estimateHandPotential(hand, context);
-                const minThreshold = context.minFan >= 3 ? 6 : 3; // Harder to break lock in high-min games
-                if (potential < minThreshold) return { protect: true, suit: lockedSuit };
+                if (potential < 3) return { protect: true, suit: lockedSuit };
             }
             return { protect: false };
         }
